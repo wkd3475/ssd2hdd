@@ -8,6 +8,22 @@
 
 using namespace std;
 
+static void callback(GtkWidget *widget, gpointer data);
+GtkWidget *list_label_frame(GtkWidget *parent, const char *label_text, int num);
+vector<int> * printList(int argc, char* argv[], vector<pair<double,string>> const* list, int errorCode, double rate);
+
+static void callback(GtkWidget *widget, gpointer data) {
+	g_print("hello~~~ %s was pressed\n", (char *) data);
+}
+
+static void checkbutton_callback(GtkWidget *widget, gpointer data) {
+	if(widget.Active) {
+		g_print("%s : activated\n", (char *) data);
+	} else {
+		g_print("%s : not activated\n", (char *) data);
+	}
+}
+
 GtkWidget *list_label_frame(GtkWidget *parent, const char *label_text) {
 	GtkWidget *hbox;
 	GtkWidget *button;
@@ -17,8 +33,9 @@ GtkWidget *list_label_frame(GtkWidget *parent, const char *label_text) {
 	gtk_container_add(GTK_CONTAINER(parent), hbox);
 
 	button = gtk_check_button_new();
+	g_signal_connect(button, "clicked", G_CALLBACK(checkbutton_callback), (gpointer) label_text);
 	gtk_box_pack_start(GTK_BOX(hbox), button, TRUE, TRUE, 0);
-
+	
 	label = gtk_label_new(label_text);
 	gtk_box_pack_start(GTK_BOX(hbox), label, TRUE, TRUE, 0);
 
@@ -26,10 +43,6 @@ GtkWidget *list_label_frame(GtkWidget *parent, const char *label_text) {
 	gtk_widget_show(label);
 	
 	return hbox;
-}
-
-static void callback(GtkWidget *widget, gpointer data) {
-	g_print("hello~~~ %s was pressed\n", (char *) data);
 }
 
 vector<int> * printList(int argc, char* argv[], vector<pair<double,string>> const* list, int errorCode, double rate) {
@@ -40,7 +53,9 @@ vector<int> * printList(int argc, char* argv[], vector<pair<double,string>> cons
 	GtkWidget *button_cancel;
 	GtkWidget *button_ok;
 	vector<int> *a = new vector<int>;
-	a->push_back(1);
+	vector<int> *num_list = new vector<int>;
+
+	a->push_back(0);
 	gtk_init(&argc, &argv);
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
@@ -52,39 +67,58 @@ vector<int> * printList(int argc, char* argv[], vector<pair<double,string>> cons
 
 	switch (errorCode) {
 		case RECOMMEND:
+		{
 			label_information = gtk_label_new("The disk is full. It is recommended to move the folder to the SSD. Would you like to move if?");
+			gtk_widget_show(label_information);
+
+			vbox = gtk_vbox_new(FALSE, 0);
+			gtk_container_add(GTK_CONTAINER(vbox), label_information);
+
+			gtk_container_add(GTK_CONTAINER(window), vbox);
+
+			string pathlist[10];
+			int l = 0;
+			for(vector<pair<double,string>>::const_iterator iter=list->begin(); iter!=list->end(); iter++) {
+				pathlist[l] = (*iter).second;
+				l += 1;
+			}
+
+			GtkWidget *hbox[l];
+
+			for(int i=0; i<l; i++) {
+				hbox[i] = list_label_frame(vbox, pathlist[i].c_str());
+				gtk_widget_show(hbox[i]);
+			}
+			
+			hbox_button = gtk_hbox_new(FALSE, 0);
+			button_cancel = gtk_button_new_with_label("cancel");
+			button_ok = gtk_button_new_with_label("ok");
+
+			g_signal_connect(button_ok, "clicked", G_CALLBACK(callback), (gpointer) "ok");
+			
+			gtk_container_add(GTK_CONTAINER(hbox_button), button_cancel);
+			gtk_container_add(GTK_CONTAINER(hbox_button), button_ok);
+			gtk_container_add(GTK_CONTAINER(vbox), hbox_button);
+			gtk_widget_show(hbox_button);
+			gtk_widget_show(button_cancel);
+			gtk_widget_show(button_ok);
+
+			gtk_widget_show(vbox);
+
+			gtk_widget_show(window);
+			gtk_main();
 			break;
+		}
 		default:
+		{
 			printf("something wrong...\n");
-			return a;
-	}
-	gtk_widget_show(label_information);
+			a->push_back(-1);
+			break;
+		}
 
-	vbox = gtk_vbox_new(FALSE, 0);
-	gtk_container_add(GTK_CONTAINER(vbox), label_information);
-
-	gtk_container_add(GTK_CONTAINER(window), vbox);
-
-	string pathlist[10];
-	int l = 0;
-	for(vector<pair<double,string>>::const_iterator iter=list->begin(); iter!=list->end(); iter++) {
-		pathlist[l] = (*iter).second;
-		l += 1;
+		return a;
 	}
 
-	GtkWidget *hbox[l];
-
-	for(int i=0; i<l; i++) {
-		hbox[i] = list_label_frame(vbox, pathlist[i].c_str());
-		gtk_widget_show(hbox[i]);
-	}
-	
-	hbox_button = gtk_hbox_new(FALSE, 0);
-	button_cancel = gtk_button_new_with_label("cancel");
-	button_ok = gtk_button_new_with_label("ok");
-
-	g_signal_connect(button_ok, "clicked", G_CALLBACK(callback), (gpointer) "ok");
-	
 	gtk_container_add(GTK_CONTAINER(hbox_button), button_cancel);
 	gtk_container_add(GTK_CONTAINER(hbox_button), button_ok);
 	gtk_container_add(GTK_CONTAINER(vbox), hbox_button);
@@ -96,7 +130,6 @@ vector<int> * printList(int argc, char* argv[], vector<pair<double,string>> cons
 
 	gtk_widget_show(window);
 	gtk_main();
-
 	return a;
 }
 

@@ -4,7 +4,12 @@
 #include <string>
 #include <utility>
 //#include "PreviewFilesssdToHdd.h"
+
 #define RECOMMEND 1
+#define WINDOW_HEIGHT 500
+#define WINDOW_WIDTH 700
+#define WIDGET_HEIGHT 40
+#define WIDGET_WIDTH 20
 
 using namespace std;
 
@@ -17,7 +22,7 @@ static void callback(GtkWidget *widget, gpointer data) {
 }
 
 static void checkbutton_callback(GtkWidget *widget, gpointer data) {
-	if(widget.Active) {
+	if(GTK_TOGGLE_BUTTON(widget)->active) {
 		g_print("%s : activated\n", (char *) data);
 	} else {
 		g_print("%s : not activated\n", (char *) data);
@@ -30,13 +35,16 @@ GtkWidget *list_label_frame(GtkWidget *parent, const char *label_text) {
 	GtkWidget *label;
 
 	hbox = gtk_hbox_new(FALSE, 0);
+	gtk_widget_set_size_request(hbox, WINDOW_WIDTH, WIDGET_HEIGHT);
 	gtk_container_add(GTK_CONTAINER(parent), hbox);
 
 	button = gtk_check_button_new();
 	g_signal_connect(button, "clicked", G_CALLBACK(checkbutton_callback), (gpointer) label_text);
+	gtk_widget_set_size_request(button, WIDGET_WIDTH, WIDGET_HEIGHT);
 	gtk_box_pack_start(GTK_BOX(hbox), button, TRUE, TRUE, 0);
 	
 	label = gtk_label_new(label_text);
+	gtk_widget_set_size_request(label, WINDOW_WIDTH-WIDGET_WIDTH, WIDGET_HEIGHT);
 	gtk_box_pack_start(GTK_BOX(hbox), label, TRUE, TRUE, 0);
 
 	gtk_widget_show(button);
@@ -58,12 +66,12 @@ vector<int> * printList(int argc, char* argv[], vector<pair<double,string>> cons
 	a->push_back(0);
 	gtk_init(&argc, &argv);
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_title(GTK_WINDOW(window), "SSD to HDD");
 
 	gtk_signal_connect(GTK_OBJECT(window), "destroy", GTK_SIGNAL_FUNC(gtk_exit), NULL);
 	gtk_signal_connect(GTK_OBJECT(window), "delete_event", GTK_SIGNAL_FUNC(gtk_exit), NULL);
 
 	gtk_container_border_width(GTK_CONTAINER (window), 10);
-	gtk_window_set_default_size(GTK_WINDOW(window), 400, 300);
 
 	switch (errorCode) {
 		case RECOMMEND:
@@ -95,7 +103,8 @@ vector<int> * printList(int argc, char* argv[], vector<pair<double,string>> cons
 			button_ok = gtk_button_new_with_label("ok");
 
 			g_signal_connect(button_ok, "clicked", G_CALLBACK(callback), (gpointer) "ok");
-			
+			g_signal_connect(button_cancel, "clicked", G_CALLBACK(callback), (gpointer) "cancel");
+
 			gtk_container_add(GTK_CONTAINER(hbox_button), button_cancel);
 			gtk_container_add(GTK_CONTAINER(hbox_button), button_ok);
 			gtk_container_add(GTK_CONTAINER(vbox), hbox_button);

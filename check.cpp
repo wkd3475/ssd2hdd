@@ -22,6 +22,11 @@ int main(int argc, char* argv[]) {
 }
 
 vector<int> * printList(int argc, char* argv[], vector<pair<double,string>> const* list, int errorCode) {
+	if(list->size()>10) {
+		result->push_back(-1);
+		return result;
+	}
+
 	GtkWidget *window;
 	GtkWidget *vbox;
 	GtkWidget *label_information;
@@ -99,7 +104,11 @@ GtkWidget *list_label_frame(GtkWidget *parent, const char *label_text, long int 
 	GtkWidget *hbox;
 	GtkWidget *button;
 	GtkWidget *label;
-
+	GdkColor color;
+	color.red = 0x0000;
+	color.green = 0x0000;
+	color.blue = 0x0000;
+	
 	hbox = gtk_hbox_new(FALSE, 0);
 	gtk_widget_set_size_request(hbox, WINDOW_WIDTH, WIDGET_HEIGHT);
 	gtk_container_add(GTK_CONTAINER(parent), hbox);
@@ -114,6 +123,8 @@ GtkWidget *list_label_frame(GtkWidget *parent, const char *label_text, long int 
 	gtk_widget_set_size_request(label, WINDOW_WIDTH-WIDGET_WIDTH, WIDGET_HEIGHT);
 	//gtk_box_pack_start(GTK_BOX(hbox), label, TRUE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(hbox), label);
+
+	gtk_widget_modify_bg(label, GTK_STATE_NORMAL, &color);
 
 	gtk_widget_show(button);
 	gtk_widget_show(label);
@@ -142,9 +153,6 @@ static void checkbutton_callback(GtkWidget *widget, long int num) {
 	} else {
 		g_print("%ld : not activated\n", num);
 		list[num] = 0;
-	}
-	for(int i=0; i<LIST_NUM; i++) {
-		printf("%d ", list[i]);
 	}
 	printf("\n");
 }

@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <utility>
+#include <stdlib.h>
 //#include "PreviewFilesssdToHdd.h"
 
 #define RECOMMEND 1
@@ -10,26 +11,61 @@
 #define WINDOW_WIDTH 700
 #define WIDGET_HEIGHT 40
 #define WIDGET_WIDTH 20
+#define LIST_NUM 10
 
 using namespace std;
 
-static void callback(GtkWidget *widget, gpointer data);
-GtkWidget *list_label_frame(GtkWidget *parent, const char *label_text, int num);
+typedef struct data{
+	GtkWidget *check_button_list[LIST_NUM];
+	vector<int> *result;
+} Data;
+
+static void ok_button_prees_event(GtkWidget *widget, gpointer data);
+static void callback(GtkWidget *widget, gpointer text);
+static void checkbutton_callback(GtkWidget *widget, gpointer text);
+GtkWidget *list_label_frame(GtkWidget *parent, const char *label_text, GtkWidget *checkbutton);
 vector<int> * printList(int argc, char* argv[], vector<pair<double,string>> const* list, int errorCode, double rate);
 
-static void callback(GtkWidget *widget, gpointer data) {
-	g_print("hello~~~ %s was pressed\n", (char *) data);
+int main(int argc, char* argv[]) {
+	double a[5] = {1,2,3,4,5};
+	string x[5] = {"/path/path", "hi", "hello", "why", "mundf"};
+	vector<pair<double,string>> list;
+	vector<int> *b = new vector<int>;
+	for(int i=0; i<5; i++) {
+		list.push_back(make_pair(a[i], x[i]));
+	}
+	b = printList(argc, argv, &list, RECOMMEND, 0.02);
+	printf("hello\n");
+	for(int i=0; i<b->size(); i++) {
+		printf("%d : %d\n", i, b->at(i));
+	}
+	return 0;
 }
 
-static void checkbutton_callback(GtkWidget *widget, gpointer data) {
+static void ok_button_press_event(GtkWidget *widget, gpointer data) {
+	Data * d = (Data *) data;
+	
+	for(int i=0; i<LIST_NUM; i++) {
+		if(GTK_TOGGLE_BUTTON(&d->check_button_list[i])->active) {
+			d->result->push_back(i);
+		}
+	}
+	gtk_main_quit();
+}
+
+static void callback(GtkWidget *widget, gpointer text) {
+	g_print("hello~~~ %s was pressed\n", (char *) text);
+}
+
+static void checkbutton_callback(GtkWidget *widget, gpointer text) {
 	if(GTK_TOGGLE_BUTTON(widget)->active) {
-		g_print("%s : activated\n", (char *) data);
+		g_print("%s : activated\n", (char *) text);
 	} else {
-		g_print("%s : not activated\n", (char *) data);
+		g_print("%s : not activated\n", (char *) text);
 	}
 }
 
-GtkWidget *list_label_frame(GtkWidget *parent, const char *label_text) {
+GtkWidget *list_label_frame(GtkWidget *parent, const char *label_text, GtkWidget **checkbutton) {
 	GtkWidget *hbox;
 	GtkWidget *button;
 	GtkWidget *label;
@@ -49,6 +85,10 @@ GtkWidget *list_label_frame(GtkWidget *parent, const char *label_text) {
 
 	gtk_widget_show(button);
 	gtk_widget_show(label);
+
+	printf("button address : %p\n", button);
+	**checkbutton = *button;
+	printf("checkbutton address : %p\n", *checkbutton);
 	
 	return hbox;
 }
@@ -61,7 +101,12 @@ vector<int> * printList(int argc, char* argv[], vector<pair<double,string>> cons
 	GtkWidget *button_cancel;
 	GtkWidget *button_ok;
 	vector<int> *a = new vector<int>;
-	vector<int> *num_list = new vector<int>;
+	Data data;
+	for(int i=0; i<sizeof(data.check_button_list) / sizeof(GtkWidget *); i++) {
+		data.check_button_list[i] = (GtkWidget*)malloc(sizeof(GtkWidget));
+	}
+	data.result = new vector<int>;
+	printf("data.check_button_list address : %p\n", data.check_button_list);
 
 	a->push_back(0);
 	gtk_init(&argc, &argv);
@@ -94,15 +139,16 @@ vector<int> * printList(int argc, char* argv[], vector<pair<double,string>> cons
 			GtkWidget *hbox[l];
 
 			for(int i=0; i<l; i++) {
-				hbox[i] = list_label_frame(vbox, pathlist[i].c_str());
+				printf("data.check_button_list[%d] address: %p\n", i, &data.check_button_list[i]);
+				hbox[i] = list_label_frame(vbox, pathlist[i].c_str(), &data.check_button_list[i]);
 				gtk_widget_show(hbox[i]);
 			}
-			
+
 			hbox_button = gtk_hbox_new(FALSE, 0);
 			button_cancel = gtk_button_new_with_label("cancel");
 			button_ok = gtk_button_new_with_label("ok");
 
-			g_signal_connect(button_ok, "clicked", G_CALLBACK(callback), (gpointer) "ok");
+			g_signal_connect(button_ok, "clicked", G_CALLBACK(ok_button_press_event), (gpointer) &data);
 			g_signal_connect(button_cancel, "clicked", G_CALLBACK(callback), (gpointer) "cancel");
 
 			gtk_container_add(GTK_CONTAINER(hbox_button), button_cancel);
@@ -116,6 +162,7 @@ vector<int> * printList(int argc, char* argv[], vector<pair<double,string>> cons
 
 			gtk_widget_show(window);
 			gtk_main();
+			a = data.result;
 			break;
 		}
 		default:
@@ -142,13 +189,3 @@ vector<int> * printList(int argc, char* argv[], vector<pair<double,string>> cons
 	return a;
 }
 
-int main(int argc, char* argv[]) {
-	double a = 3, b = 2;
-	string x = "/path/path";
-	string y = "/your/path";
-	vector<pair<double,string>> list;
-	list.push_back(make_pair(a, x));
-	list.push_back(make_pair(b, y));
-	printList(argc, argv, &list, RECOMMEND, 0.02);
-	return 0;
-}	

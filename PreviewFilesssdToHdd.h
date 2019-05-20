@@ -6,7 +6,7 @@
 #include<vector>
 #include<utility>
 #include<sys/stat.h>
-#include <string>
+#include<string> 
 
 #define TIMELOGNAME ".s2htimelog"
 #define NUMBEROFSAVE (30)
@@ -20,13 +20,17 @@ struct s2hData{
 	int beginSubdir,endSubdir;
 	time_t lastAccessTimeSubdir;
 	time_t accessTimeSubdir[NUMBEROFSAVE];
+	off_t sizeOfDir;
 };
 
-vector<int> * printList(vector<pair<double,string>> const* list,int errorCode, double rate);//0 normal
+vector<int> * printList(int argc, char* argv[], vector<pair<double,string>> const* list,int errorCode);//0 normal
 double calWeight(string path);
-int getInfo(string path, struct stat *stat, struct s2hData *s2hData);
+
+int getInfo(string path,struct stat*stat,struct s2hData*s2hData);
+int getInfo(const char* path,struct stat*stat,struct s2hData*s2hData);
 
 
+#define FAILEDTOOPEN (1)
 
 
 #endif

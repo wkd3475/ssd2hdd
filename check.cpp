@@ -1,8 +1,8 @@
 #include "check.h"
 
-vector<int> *result = new vector<int>;
+static vector<int> *result = new vector<int>;
 
-int list[LIST_NUM] = {0, };
+static int list[LIST_NUM] = {0, };
 
 int main(int argc, char* argv[]) {
 	double a[5] = {1,2,3,4,5};
@@ -22,6 +22,7 @@ int main(int argc, char* argv[]) {
 }
 
 vector<int> * printList(int argc, char* argv[], vector<pair<double,string>> const* list, int errorCode) {
+
 	if(list->size()>10) {
 		result->push_back(-1);
 		return result;
@@ -161,4 +162,11 @@ static void cancel_event(GtkWidget *widget, gpointer data) {
 	result->push_back(-1);
 
 	gtk_main_quit();
+}
+
+static void init_list() {
+	result->clear();
+	for(int i=0; i<LIST_NUM; i++) {
+		list[i] = 0;
+	}
 }

@@ -4,7 +4,7 @@
 #include <string>
 #include <utility>
 #include <stdlib.h>
-//#include "PreviewFilesssdToHdd.h"
+//#include "ssdToHdd.h"
 
 #define RECOMMEND 1
 #define WINDOW_HEIGHT 500
@@ -31,3 +31,5 @@ GtkWidget *list_label_frame(GtkWidget *parent, const char *label_text, long int 
 
 //call gui
 vector<int> * printList(int argc, char* argv[], vector<pair<double,string>> const* list, int errorCode);
+
+static void init_list();
